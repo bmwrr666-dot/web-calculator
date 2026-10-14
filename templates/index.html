@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Python Web Calculator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e1e2f, #2a2a40);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .calculator {
+            background: #2b2b3d;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 340px;
+        }
+        h2 { text-align: center; margin-bottom: 15px; font-size: 20px; color: #00d2ff; }
+        
+        #display {
+            width: 100%;
+            height: 55px;
+            background: #181824;
+            border: 2px solid #3f3f5f;
+            border-radius: 8px;
+            color: #00ffcc;
+            font-size: 22px;
+            text-align: right;
+            padding: 5px 12px;
+            box-sizing: border-box;
+            margin-bottom: 15px;
+            outline: none;
+        }
+        #display:focus {
+            border-color: #00d2ff;
+        }
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        button {
+            padding: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            background: #3a3a55;
+            color: white;
+            transition: 0.2s;
+        }
+        button:hover { background: #4f4f75; }
+        button.operator { background: #007acc; }
+        button.operator:hover { background: #0098ff; }
+        button.equal { background: #00b894; grid-column: span 2; }
+        button.equal:hover { background: #55efc4; color: #000; }
+        button.clear { background: #d63031; }
+        button.clear:hover { background: #ff7675; }
+    </style>
+</head>
+<body>
+
+<div class="calculator">
+    <h2>Python AST Calculator</h2>
+    <!-- Note: No 'readonly' attribute here, allowing full keyboard input -->
+    <input type="text" id="display" placeholder="e.g. 5 + sqrt(16) * 2" />
+    
+    <div class="buttons">
+        <button class="clear" onclick="clearDisplay()">C</button>
+        <button onclick="appendValue('(')">(</button>
+        <button onclick="appendValue(')')">)</button>
+        <button class="operator" onclick="appendValue('/')">/</button>
+
+        <button onclick="appendValue('7')">7</button>
+        <button onclick="appendValue('8')">8</button>
+        <button onclick="appendValue('9')">9</button>
+        <button class="operator" onclick="appendValue('*')">*</button>
+
+        <button onclick="appendValue('4')">4</button>
+        <button onclick="appendValue('5')">5</button>
+        <button onclick="appendValue('6')">6</button>
+        <button class="operator" onclick="appendValue('-')">-</button>
+
+        <button onclick="appendValue('1')">1</button>
+        <button onclick="appendValue('2')">2</button>
+        <button onclick="appendValue('3')">3</button>
+        <button class="operator" onclick="appendValue('+')">+</button>
+
+        <button onclick="appendValue('0')">0</button>
+        <button onclick="appendValue('.')">.</button>
+        <button class="operator" onclick="appendValue('sqrt(')">√</button>
+        <button class="operator" onclick="appendValue('**')">^</button>
+
+        <button class="equal" onclick="calculate()">=</button>
+        <button class="operator" onclick="appendValue('sin(')">sin</button>
+        <button class="operator" onclick="appendValue('cos(')">cos</button>
+    </div>
+</div>
+
+<script>
+    const display = document.getElementById("display");
+
+    function appendValue(val) {
+        display.value += val;
+    }
+
+    function clearDisplay() {
+        display.value = "";
+    }
+
+    async function calculate() {
+        const expression = display.value;
+        if (!expression) return;
+
+        try {
+            const response = await fetch('/calculate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ expression: expression })
+            });
+            const data = await response.json();
+            display.value = data.result;
+        } catch (error) {
+            display.value = "Network Error";
+        }
+    }
+
+    // Optional physical keyboard shortcut bindings
+    document.addEventListener("keydown", function(event) {
+        const key = event.key;
+        
+        if ("0123456789+-*/().^".includes(key)) {
+            appendValue(key);
+            event.preventDefault();
+        } 
+        else if (key === "Enter" || key === "=") {
+            calculate();
+            event.preventDefault();
+        } 
+        else if (key === "Backspace") {
+            display.value = display.value.slice(0, -1);
+            event.preventDefault();
+        } 
+        else if (key.toLowerCase() === "c") {
+            clearDisplay();
+            event.preventDefault();
+        }
+    });
+</script>
+
+</body>
+</html>
